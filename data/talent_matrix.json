@@ -1,0 +1,36 @@
+{
+  "description": "Generieke competentiematrix voor AI/data-rollen (fictief voorbeeld)",
+  "levels": ["junior", "medior", "senior"],
+  "competencies": [
+    {
+      "name": "Python & software engineering",
+      "junior": "Schrijft werkende scripts met begeleiding",
+      "medior": "Bouwt zelfstandig onderhoudbare componenten met tests",
+      "senior": "Ontwerpt architectuur, zet standaarden, begeleidt anderen"
+    },
+    {
+      "name": "LLM- en agentic applicaties",
+      "junior": "Experimenteert met prompts en API-calls",
+      "medior": "Bouwt werkende agents met tool use en guards",
+      "senior": "Ontwerpt agent-architecturen, evals en productie-deployment"
+    },
+    {
+      "name": "Tool- en API-integratie",
+      "junior": "Consumeert bestaande API's",
+      "medior": "Integreert meerdere bronnen in robuuste workflows",
+      "senior": "Ontwerpt integratie-architectuur en foutafhandeling"
+    },
+    {
+      "name": "Testen & evaluatie",
+      "junior": "Test handmatig",
+      "medior": "Schrijft geautomatiseerde tests en eenvoudige evals",
+      "senior": "Zet eval-frameworks en kwaliteitsmetrics op"
+    },
+    {
+      "name": "Stakeholdercommunicatie",
+      "junior": "Rapporteert voortgang helder",
+      "medior": "Vertaalt techniek naar businesswaarde",
+      "senior": "Adviseert management, stuurt verwachtingen"
+    }
+  ]
+}

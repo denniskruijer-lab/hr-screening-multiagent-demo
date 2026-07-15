@@ -1,0 +1,18 @@
+CV — Jamie Visser (fictieve voorbeeldkandidaat)
+
+Profiel
+Data engineer met 4 jaar ervaring in Python en SQL. Bouwt datapipelines en
+automatiseringen; sinds een jaar bezig met LLM-applicaties en kleine
+AI-agents als side-projects.
+
+Werkervaring
+- Data Engineer, LogistiekCo (2022-heden): ETL-pipelines in Python,
+  API-integraties, monitoring en data quality checks, CI/CD met GitHub Actions.
+- Junior Data Analist, RetailB.V. (2020-2022): dashboards en rapportages.
+
+Projecten
+- Chat-assistent voor interne documentatie (RAG, embeddings, Python).
+- Kleine agent die wekelijkse rapportages genereert via een LLM-API.
+
+Vaardigheden
+Python, SQL, REST API's, Docker, Git, basis TypeScript, prompt engineering.

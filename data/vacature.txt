@@ -1,0 +1,16 @@
+AI Engineer — Novaq Digital (fictieve voorbeeldvacature)
+
+Wij zoeken een AI Engineer die agentic AI-oplossingen bouwt die in de praktijk
+werken. Je ontwikkelt AI agents en workflows met LLM's, integreert tools,
+API's en databronnen, en zorgt dat oplossingen schaalbaar en betrouwbaar zijn.
+
+Wat je gaat doen:
+- Bouwen en optimaliseren van AI agents en agentic workflows
+- Integreren van tools, API's en databronnen
+- Testen en evalueren van AI-oplossingen op performance en betrouwbaarheid
+- Analyseren en debuggen van agent-gedrag (hallucinaties, looping, incorrect toolgebruik)
+
+Wat je meebrengt:
+- Ervaring met softwareontwikkeling in Python en/of TypeScript
+- Ervaring met AI- en agent-frameworks en LLM-applicaties
+- Sterke analytische en probleemoplossende vaardigheden

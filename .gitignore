@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+output/
+.env
+
+# Runtime logs (created per run, not source)
+logs/
+
+# Real, non-fictional demo data (real CV, real vacancy text) — never committed.
+# See data_local/README.md for why this directory is gitignored.
+data_local/*
+!data_local/.gitkeep
+!data_local/README.md

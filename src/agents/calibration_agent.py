@@ -32,8 +32,12 @@ def _save_report(candidate_name, fit_score, estimated_level, strengths, gaps, ad
     )
 
 
-def build_calibration_agent(client) -> Agent:
-    """`client` is injected: a real Gemini-backed client in production, a fake in tests."""
+def build_calibration_agent(client, extra_tools: list[Tool] | None = None) -> Agent:
+    """`client` is injected: a real Gemini-backed client in production, a fake in tests.
+
+    `extra_tools` lets the caller add capabilities (e.g. RAG retrieval)
+    without this module needing to know anything about how they're built.
+    """
     tools = build_document_reading_tools() + [
         Tool(
             name="save_screening_report",
@@ -41,5 +45,5 @@ def build_calibration_agent(client) -> Agent:
             input_schema=SAVE_REPORT_SCHEMA,
             handler=_save_report,
         ),
-    ]
+    ] + (extra_tools or [])
     return Agent(client=client, model=MODEL, tools=tools, system_prompt=SYSTEM_PROMPT)

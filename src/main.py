@@ -18,6 +18,7 @@ from .agents.supervisor import build_supervisor
 from .logging_setup import configure_logging, log_trace
 from .providers.anthropic_client import build_anthropic_client
 from .providers.gemini_adapter import GeminiMessagesClient, build_gemini_sdk_client
+from .rag.store import InMemoryVectorStore, build_corpus
 
 
 def main() -> int:
@@ -41,10 +42,15 @@ def main() -> int:
     # supervisor itself -- the model is chosen per Agent instance, not baked
     # into the client, so sharing it is safe.
     gemini_client = GeminiMessagesClient(gemini_sdk)
+
+    corpus = build_corpus([args.cv, args.vacancy, "talent_matrix.json"])
+    vector_store = InMemoryVectorStore(corpus, gemini_sdk)
+
     supervisor = build_supervisor(
         supervisor_client=gemini_client,
         screening_client=anthropic_client,
         calibration_client=gemini_client,
+        vector_store=vector_store,
     )
 
     prompt = (

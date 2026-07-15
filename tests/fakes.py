@@ -86,6 +86,35 @@ class FakeGeminiSDK:
         return self._responses[0]
 
 
+# ── fakes for embeddings (RAG) ───────────────────────────────────────────────
+class FakeEmbeddingSDK:
+    """Deterministic fake embedding client: encodes each text as a bag-of-words
+    presence vector over a small fixed vocabulary, so cosine similarity ranks
+    texts that share more of those words higher. No real semantics, but enough
+    to test the ranking logic without a network call."""
+    VOCAB = ["python", "rag", "agent", "docker", "sql", "typescript"]
+
+    def __init__(self):
+        self.models = self
+
+    def embed_content(self, *, model, contents):
+        embeddings = [Block(values=self._vectorize(text)) for text in contents]
+        return Block(embeddings=embeddings)
+
+    def _vectorize(self, text: str) -> list[float]:
+        lowered = text.lower()
+        return [1.0 if word in lowered else 0.0 for word in self.VOCAB]
+
+
+class FailingEmbeddingSDK:
+    """A fake embedding client that always raises, to test graceful degradation."""
+    def __init__(self):
+        self.models = self
+
+    def embed_content(self, *, model, contents):
+        raise RuntimeError("simulated network failure")
+
+
 # ── shared agent fixtures (provider-agnostic -- Agent doesn't care which client it got) ──
 def echo_tool(calls_log=None):
     def handler(message: str) -> str:

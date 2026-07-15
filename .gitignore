@@ -3,6 +3,8 @@ __pycache__/
 .pytest_cache/
 output/
 .env
+.venv/
+venv/
 
 # Runtime logs (created per run, not source)
 logs/

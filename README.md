@@ -72,9 +72,9 @@ Model choice is a function of each agent's role, not a fixed default:
 
 | Agent | Model | Why |
 |---|---|---|
-| Supervisor | `gemini-2.5-flash` | Cheap and fast — it only dispatches and aggregates, it doesn't reason deeply. |
+| Supervisor | `gemini-flash-lite-latest` | Cheapest/fastest tier — it only dispatches and aggregates, it doesn't reason deeply. |
 | Screening | `claude-sonnet-5` | The primary, deep CV-vs-vacancy assessment. |
-| Calibration | `gemini-2.5-pro` | A different **provider** on purpose — a second opinion is only useful if it isn't correlated with the first model's blind spots. |
+| Calibration | `gemini-flash-lite-latest` | A different **provider** on purpose — a second opinion is only useful if it isn't correlated with the first model's blind spots. That's the meaningful distinction here, not which Gemini tier is used. Some dated Gemini model IDs (e.g. `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.0-flash`) returned 404 ("no longer available to new users") or 429 (quota exceeded) for this project's account, and `gemini-flash-latest` hit a transient 503 during testing — `gemini-flash-lite-latest` was the one verified reliably working end to end. |
 
 ### RAG (`src/rag/`, `src/tools/retrieval.py`)
 

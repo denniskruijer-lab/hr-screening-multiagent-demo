@@ -44,9 +44,10 @@ class FakeClient:
 # ── fakes for the Gemini side ────────────────────────────────────────────────
 class FakePart:
     """A minimal stand-in for google.genai.types.Part, as returned in a response."""
-    def __init__(self, text=None, function_call=None):
+    def __init__(self, text=None, function_call=None, thought_signature=None):
         self.text = text
         self.function_call = function_call
+        self.thought_signature = thought_signature
 
 
 class FakeFunctionCall:
@@ -68,8 +69,11 @@ def gemini_text_response(text):
     return FakeGeminiResponse(parts=[FakePart(text=text)])
 
 
-def gemini_tool_response(name, args, call_id="call_1"):
-    return FakeGeminiResponse(parts=[FakePart(function_call=FakeFunctionCall(name=name, args=args, id=call_id))])
+def gemini_tool_response(name, args, call_id="call_1", thought_signature=None):
+    return FakeGeminiResponse(parts=[FakePart(
+        function_call=FakeFunctionCall(name=name, args=args, id=call_id),
+        thought_signature=thought_signature,
+    )])
 
 
 class FakeGeminiSDK:

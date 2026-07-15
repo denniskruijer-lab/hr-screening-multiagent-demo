@@ -18,7 +18,7 @@ from ..tools.retrieval import build_retrieve_context_tool
 from .calibration_agent import build_calibration_agent
 from .screening_agent import build_screening_agent
 
-MODEL = "gemini-2.5-flash"  # cheap and fast: this agent only dispatches and aggregates
+MODEL = "gemini-flash-lite-latest"  # cheapest/fastest tier: this agent only dispatches and aggregates
 
 SYSTEM_PROMPT = """You are the supervisor of a two-agent candidate screening pipeline.
 

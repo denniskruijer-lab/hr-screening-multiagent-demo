@@ -19,6 +19,7 @@ from .calibration_agent import build_calibration_agent
 from .screening_agent import build_screening_agent
 
 MODEL = "gemini-flash-lite-latest"  # cheapest/fastest tier: this agent only dispatches and aggregates
+MAX_TOKENS = 8000  # same safety margin as the worker agents -- see screening_agent.py's comment
 
 SYSTEM_PROMPT = """You are the supervisor of a two-agent candidate screening pipeline.
 
@@ -106,4 +107,4 @@ def build_supervisor(supervisor_client, screening_client, calibration_client, ve
             handler=_check_score_agreement,
         ),
     ]
-    return Agent(client=supervisor_client, model=MODEL, tools=tools, system_prompt=SYSTEM_PROMPT)
+    return Agent(client=supervisor_client, model=MODEL, tools=tools, system_prompt=SYSTEM_PROMPT, max_tokens=MAX_TOKENS)

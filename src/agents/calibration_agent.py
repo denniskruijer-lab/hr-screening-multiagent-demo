@@ -13,6 +13,7 @@ from .common_tools import SAVE_REPORT_SCHEMA, build_document_reading_tools
 MODEL = "gemini-flash-lite-latest"  # verified to work within this project's free-tier quota;
                                     # the meaningful distinction from screening is the provider
                                     # (Gemini vs. Claude), not which Gemini tier is used
+MAX_TOKENS = 8000  # matches the screening agent's budget -- see screening_agent.py's comment
 
 SYSTEM_PROMPT = """You are an independent calibration agent for a recruitment screening pipeline.
 
@@ -48,4 +49,4 @@ def build_calibration_agent(client, extra_tools: list[Tool] | None = None) -> Ag
             handler=_save_report,
         ),
     ] + (extra_tools or [])
-    return Agent(client=client, model=MODEL, tools=tools, system_prompt=SYSTEM_PROMPT)
+    return Agent(client=client, model=MODEL, tools=tools, system_prompt=SYSTEM_PROMPT, max_tokens=MAX_TOKENS)

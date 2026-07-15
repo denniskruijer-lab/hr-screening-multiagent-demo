@@ -1,107 +1,65 @@
 """
-CLI entry point: screen a candidate CV against a vacancy using the agent.
+CLI entry point: run the two-agent screening pipeline (supervisor + workers)
+on a candidate.
 
 Usage:
     export ANTHROPIC_API_KEY=sk-ant-...
+    export GEMINI_API_KEY=...
     python -m src.main
-    python -m src.main --vacancy vacature.txt --cv kandidaat_cv.txt
+    python -m src.main --vacancy vacature.txt --cv kandidaat_cv.txt --candidate-name "Jamie Visser"
 """
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 
-from .agent import Agent, MaxIterationsExceeded, Tool
-from . import tools
-
-MODEL = "claude-sonnet-4-6"
-
-SYSTEM_PROMPT = """You are a recruitment screening agent for a technology consultancy.
-
-Your job: assess how well a candidate fits a vacancy, calibrated against the
-company's talent matrix.
-
-Work step by step:
-1. Read the vacancy and the candidate CV with read_document.
-2. Fetch the talent matrix with get_talent_matrix.
-3. Compare the candidate against both the vacancy requirements and the matrix.
-4. Save your conclusion with save_screening_report, then summarise it briefly.
-
-Ground every claim in the documents you actually read. If information is
-missing, say so in the report instead of guessing."""
-
-
-def build_tools() -> list[Tool]:
-    return [
-        Tool(
-            name="read_document",
-            description="Read a text document (vacancy or CV) from the data directory.",
-            input_schema={
-                "type": "object",
-                "properties": {"filename": {"type": "string", "description": "File name inside data/"}},
-                "required": ["filename"],
-            },
-            handler=tools.read_document,
-        ),
-        Tool(
-            name="get_talent_matrix",
-            description="Get the competence matrix (levels x competencies) used for calibration.",
-            input_schema={"type": "object", "properties": {}},
-            handler=tools.get_talent_matrix,
-        ),
-        Tool(
-            name="save_screening_report",
-            description="Save the final structured screening report. All fields are validated.",
-            input_schema={
-                "type": "object",
-                "properties": {
-                    "candidate_name": {"type": "string"},
-                    "fit_score": {"type": "integer", "description": "0-100"},
-                    "estimated_level": {"type": "string", "enum": ["junior", "medior", "senior"]},
-                    "strengths": {"type": "array", "items": {"type": "string"}},
-                    "gaps": {"type": "array", "items": {"type": "string"}},
-                    "advice": {"type": "string", "description": "Concrete next step, >= 20 chars"},
-                },
-                "required": ["candidate_name", "fit_score", "estimated_level", "strengths", "gaps", "advice"],
-            },
-            handler=tools.save_screening_report,
-        ),
-    ]
+from .agent import MaxIterationsExceeded
+from .agents.supervisor import build_supervisor
+from .logging_setup import configure_logging, log_trace
+from .providers.anthropic_client import build_anthropic_client
+from .providers.gemini_adapter import GeminiMessagesClient, build_gemini_sdk_client
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Screen a candidate CV against a vacancy.")
+    parser = argparse.ArgumentParser(description="Screen a candidate CV against a vacancy using two agents.")
     parser.add_argument("--vacancy", default="vacature.txt")
     parser.add_argument("--cv", default="kandidaat_cv.txt")
-    parser.add_argument("--max-iterations", type=int, default=8)
+    parser.add_argument("--candidate-name", default="Jamie Visser",
+                         help="Must match the name the agents save their reports under.")
     args = parser.parse_args()
 
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        print("ANTHROPIC_API_KEY is not set. Get a key at https://console.anthropic.com "
-              "and run: export ANTHROPIC_API_KEY=sk-ant-...")
+    logger = configure_logging()
+
+    try:
+        anthropic_client = build_anthropic_client()
+        gemini_sdk = build_gemini_sdk_client()
+    except RuntimeError as exc:
+        print(exc)
         return 1
 
-    import anthropic  # imported lazily so tests never need the SDK
-
-    agent = Agent(
-        client=anthropic.Anthropic(),
-        model=MODEL,
-        tools=build_tools(),
-        system_prompt=SYSTEM_PROMPT,
-        max_iterations=args.max_iterations,
+    # One Gemini-backed client, reused for both the calibration agent and the
+    # supervisor itself -- the model is chosen per Agent instance, not baked
+    # into the client, so sharing it is safe.
+    gemini_client = GeminiMessagesClient(gemini_sdk)
+    supervisor = build_supervisor(
+        supervisor_client=gemini_client,
+        screening_client=anthropic_client,
+        calibration_client=gemini_client,
     )
 
     prompt = (
-        f"Screen the candidate in '{args.cv}' against the vacancy in '{args.vacancy}'. "
-        f"Use the talent matrix for level calibration and save a report."
+        f"Screen the candidate named '{args.candidate_name}' using the CV in '{args.cv}' "
+        f"against the vacancy in '{args.vacancy}'."
     )
 
     try:
-        result = agent.run(prompt)
+        result = supervisor.run(prompt)
     except MaxIterationsExceeded as exc:
-        print(f"Agent aborted: {exc}")
+        logger.critical("Supervisor aborted: %s", exc)
+        print(f"Supervisor aborted: {exc}")
         return 2
+
+    log_trace(logger, result.trace)
 
     print("=" * 72)
     print(result.final_text)

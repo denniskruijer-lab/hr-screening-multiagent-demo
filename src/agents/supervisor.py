@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from ..agent import Agent, Tool
 from ..tools.reports import flag_disagreement, load_report
+from ..tools.retrieval import build_retrieve_context_tool
 from .calibration_agent import build_calibration_agent
 from .screening_agent import build_screening_agent
 
@@ -54,15 +55,19 @@ def _check_score_agreement(screening_score: int, calibration_score: int) -> str:
     return flag_disagreement(screening_score, calibration_score)
 
 
-def build_supervisor(supervisor_client, screening_client, calibration_client) -> Agent:
+def build_supervisor(supervisor_client, screening_client, calibration_client, vector_store=None) -> Agent:
     """All three clients are injected independently, so each can be faked in tests.
 
     `supervisor_client` drives the supervisor's own dispatch/aggregation calls;
     `screening_client` and `calibration_client` are handed to the two worker
-    agents this function builds internally.
+    agents this function builds internally. `vector_store` is optional: if
+    given, both worker agents also get a retrieve_context tool backed by it
+    (RAG); if omitted, they work exactly as before -- so existing tests that
+    don't care about retrieval don't need to change.
     """
-    screening_agent = build_screening_agent(screening_client)
-    calibration_agent = build_calibration_agent(calibration_client)
+    retrieval_tools = [build_retrieve_context_tool(vector_store)] if vector_store is not None else []
+    screening_agent = build_screening_agent(screening_client, extra_tools=retrieval_tools)
+    calibration_agent = build_calibration_agent(calibration_client, extra_tools=retrieval_tools)
 
     candidate_task_schema = {
         "type": "object",

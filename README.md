@@ -113,8 +113,8 @@ CV/vacancy pair.
 
 ```bash
 pip install -r requirements.txt
-export ANTHROPIC_API_KEY=sk-ant-...          # console.anthropic.com
-export GEMINI_API_KEY=...                    # aistudio.google.com/apikey
+cp .env.example .env    # fill in ANTHROPIC_API_KEY (console.anthropic.com) and
+                        # GEMINI_API_KEY (aistudio.google.com/apikey) -- .env is gitignored, never commit it
 
 python -m src.main                            # uses the fictional sample data in data/
 python -m src.main --cv kandidaat_cv.txt --vacancy vacature.txt --candidate-name "Jamie Visser"

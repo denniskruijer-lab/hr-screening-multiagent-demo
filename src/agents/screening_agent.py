@@ -6,6 +6,14 @@ from ..tools import reports
 from .common_tools import SAVE_REPORT_SCHEMA, build_document_reading_tools
 
 MODEL = "claude-sonnet-5"
+# Claude Sonnet 5 uses extended thinking, which counts against max_tokens --
+# on a longer, information-dense real CV, 2000 tokens (Agent's default) can
+# be entirely consumed by thinking before any text or tool call is produced,
+# leaving the model to stop with an empty response. Verified empirically:
+# 2000 -> stop_reason "max_tokens" with only a thinking block; 8000 -> a
+# proper tool_use call. See the fictional sample data's shorter CV for why
+# this wasn't caught by that path.
+MAX_TOKENS = 8000
 
 SYSTEM_PROMPT = """You are a recruitment screening agent for a technology consultancy.
 
@@ -44,4 +52,4 @@ def build_screening_agent(client, extra_tools: list[Tool] | None = None) -> Agen
             handler=_save_report,
         ),
     ] + (extra_tools or [])
-    return Agent(client=client, model=MODEL, tools=tools, system_prompt=SYSTEM_PROMPT)
+    return Agent(client=client, model=MODEL, tools=tools, system_prompt=SYSTEM_PROMPT, max_tokens=MAX_TOKENS)

@@ -7,9 +7,10 @@ CLI's plain-text output.
 
 Which CV/vacancy files to use is always decided by this file (the sidebar
 selection or an upload), never guessed by the model from whatever the user
-happens to type in the chat box -- that guessing is what used to make the
-app "crash" on typos/paraphrases of a candidate's name. The chat box is for
-optional extra instructions layered on top of a fixed, correct instruction.
+happens to type -- that guessing is what used to make the app "crash" on
+typos/paraphrases of a candidate's name. The optional text field is for
+extra instructions layered on top of a fixed, correct instruction; a bare
+click of "Run screening" (no text needed) runs the default behaviour.
 
 Run with: streamlit run streamlit_app.py
 """
@@ -36,11 +37,6 @@ PRESET_DATASETS = {
         "cv_file": "kandidaat_cv.txt",
         "vacancy_file": "vacature.txt",
         "candidate_name": "Jamie Visser",
-    },
-    "Real data (Dennis vs. PAQT)": {
-        "cv_file": "cv_dennis_kruijer.docx",
-        "vacancy_file": "vacature_paqt.txt",
-        "candidate_name": "Dennis Kruijer",
     },
 }
 UPLOAD_OPTION = "Upload your own documents"
@@ -76,8 +72,6 @@ def _get_dataset() -> dict | None:
 
     if dataset_label != UPLOAD_OPTION:
         preset = PRESET_DATASETS[dataset_label]
-        if dataset_label.startswith("Real data"):
-            st.sidebar.caption("Reads from data_local/, which is gitignored and never committed.")
         return {**preset, "cache_key": dataset_label}
 
     st.sidebar.caption("Saved into data_local/, which is gitignored and never committed.")
@@ -104,7 +98,7 @@ def get_supervisor(cv_file: str, vacancy_file: str, cache_key: str):
     """`cache_key` deliberately has no leading underscore -- Streamlit excludes
     underscore-prefixed args from the cache key hash entirely, which would
     defeat its whole purpose here: busting the cache when uploaded content
-    changes under the same filename. The two preset datasets pass their own
+    changes under the same filename. The preset dataset passes its own
     label as a stable key instead."""
     logger = configure_logging()
     anthropic_client = build_anthropic_client()
@@ -132,13 +126,18 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"])
 
-user_note = st.chat_input(
-    "Optional: add extra instructions, or just press enter to run the screening"
-    if dataset else "Choose or upload a dataset in the sidebar first"
+user_note = st.text_input(
+    "Additional context (optional)",
+    placeholder="e.g. focus especially on leadership experience",
+    disabled=dataset is None,
 )
+run_clicked = st.button("Run screening", disabled=dataset is None)
 
-if user_note is not None and dataset is not None:
-    display_text = user_note or f"Screen {dataset['candidate_name']}."
+if not dataset:
+    st.info("Choose or upload a dataset in the sidebar to enable this.")
+
+if run_clicked and dataset is not None:
+    display_text = f"Screen {dataset['candidate_name']}." + (f" {user_note}" if user_note else "")
     st.session_state.messages.append({"role": "user", "content": display_text})
     with st.chat_message("user"):
         st.write(display_text)
@@ -171,5 +170,3 @@ if user_note is not None and dataset is not None:
                         for step in result.trace:
                             status = "ok" if not step["is_error"] else "ERROR"
                             st.write(f"[{step['iteration']}] `{step['tool']}` -> {status} -- input: {step['input']}")
-elif user_note is not None:
-    st.warning("Choose or upload a dataset in the sidebar before running a screening.")

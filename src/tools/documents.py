@@ -41,19 +41,25 @@ def _resolve_within_search_dirs(filename: str) -> Path:
     raise ValueError(f"File '{filename}' not found. Available: {available}")
 
 
+PLAIN_TEXT_EXTENSIONS = {".txt", ".json"}  # already-plain-text formats: read as-is, no extraction needed
+
+
 def read_document(filename: str) -> str:
-    """Read a document (.txt, .docx, or .pdf) from data/ or data_local/."""
+    """Read a document (.txt, .json, .docx, or .pdf) from data/ or data_local/."""
     path = _resolve_within_search_dirs(filename)
     suffix = path.suffix.lower()
 
-    if suffix == ".txt":
+    if suffix in PLAIN_TEXT_EXTENSIONS:
         return path.read_text(encoding="utf-8")
     if suffix == ".docx":
         return _read_docx(path)
     if suffix == ".pdf":
         return _read_pdf(path)
 
-    raise ValueError(f"Unsupported file type '{suffix}' for '{filename}'. Supported: .txt, .docx, .pdf")
+    raise ValueError(
+        f"Unsupported file type '{suffix}' for '{filename}'. "
+        f"Supported: {', '.join(sorted(PLAIN_TEXT_EXTENSIONS))}, .docx, .pdf"
+    )
 
 
 def _read_docx(path: Path) -> str:

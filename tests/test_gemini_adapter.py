@@ -67,6 +67,26 @@ def test_tool_result_history_round_trip_recovers_tool_name_by_id():
     assert function_response_part.function_response.response == {"output": "echo: hi"}
 
 
+def test_thought_signature_is_captured_and_echoed_back_on_the_next_turn():
+    """Regression test: Gemini's newer 'thinking' models reject a follow-up
+    call if a prior function_call part's thought_signature isn't echoed back
+    exactly (discovered against the real API, not anticipated in advance --
+    see the RuntimeError this used to raise with no explanation attached)."""
+    sdk = FakeGeminiSDK([
+        gemini_tool_response("echo", {"message": "hi"}, call_id="call_1", thought_signature=b"opaque-token"),
+        gemini_text_response("noted"),
+    ])
+    client = GeminiMessagesClient(sdk)
+
+    result = make_agent(client, [echo_tool()]).run("echo hi")
+
+    assert result.final_text == "noted"
+    # the second real call's history must carry the same thought_signature forward
+    second_call_contents = sdk.calls[1]["contents"]
+    assistant_turn = second_call_contents[1]  # [user prompt, assistant tool_use, user tool_result]
+    assert assistant_turn.parts[0].thought_signature == b"opaque-token"
+
+
 def test_agent_runs_a_full_happy_path_through_the_unmodified_agent_class():
     """The money test: Agent (src/agent.py) is never forked for Gemini -- it's
     the exact same class, just handed a GeminiMessagesClient instead."""

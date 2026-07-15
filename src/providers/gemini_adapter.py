@@ -48,11 +48,16 @@ class TextBlock:
 
 
 class ToolUseBlock:
-    def __init__(self, name: str, tool_input: dict, block_id: str):
+    def __init__(self, name: str, tool_input: dict, block_id: str, thought_signature: bytes | None = None):
         self.type = "tool_use"
         self.name = name
         self.input = tool_input
         self.id = block_id
+        # Gemini's newer "thinking" models require this opaque token to be
+        # echoed back on the same function_call part in a later turn, or the
+        # API rejects the request outright -- see
+        # https://ai.google.dev/gemini-api/docs/thought-signatures
+        self.thought_signature = thought_signature
 
 
 class GeminiResponse:
@@ -123,7 +128,8 @@ def _translate_history(messages: list[dict]) -> tuple[list["types.Content"], dic
                     parts.append(types.Part(text=block.text))
                 elif block.type == "tool_use":
                     parts.append(types.Part(
-                        function_call=types.FunctionCall(name=block.name, args=block.input, id=block.id)
+                        function_call=types.FunctionCall(name=block.name, args=block.input, id=block.id),
+                        thought_signature=getattr(block, "thought_signature", None),
                     ))
                     id_to_name[block.id] = block.name
             contents.append(types.Content(role="model", parts=parts))
@@ -156,6 +162,7 @@ def _translate_response(raw) -> GeminiResponse:
                 name=part.function_call.name,
                 tool_input=dict(part.function_call.args or {}),
                 block_id=call_id,
+                thought_signature=part.thought_signature,
             ))
         elif part.text:
             blocks.append(TextBlock(part.text))

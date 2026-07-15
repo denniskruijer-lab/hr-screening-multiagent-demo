@@ -10,7 +10,9 @@ from ..agent import Agent, Tool
 from ..tools import reports
 from .common_tools import SAVE_REPORT_SCHEMA, build_document_reading_tools
 
-MODEL = "gemini-2.5-pro"
+MODEL = "gemini-flash-lite-latest"  # verified to work within this project's free-tier quota;
+                                    # the meaningful distinction from screening is the provider
+                                    # (Gemini vs. Claude), not which Gemini tier is used
 
 SYSTEM_PROMPT = """You are an independent calibration agent for a recruitment screening pipeline.
 

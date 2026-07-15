@@ -3,8 +3,7 @@ CLI entry point: run the two-agent screening pipeline (supervisor + workers)
 on a candidate.
 
 Usage:
-    export ANTHROPIC_API_KEY=sk-ant-...
-    export GEMINI_API_KEY=...
+    cp .env.example .env    # fill in ANTHROPIC_API_KEY and GEMINI_API_KEY, never commit .env
     python -m src.main
     python -m src.main --vacancy vacature.txt --cv kandidaat_cv.txt --candidate-name "Jamie Visser"
 """
@@ -13,12 +12,16 @@ from __future__ import annotations
 import argparse
 import sys
 
+from dotenv import load_dotenv
+
 from .agent import MaxIterationsExceeded
 from .agents.supervisor import build_supervisor
 from .logging_setup import configure_logging, log_trace
 from .providers.anthropic_client import build_anthropic_client
 from .providers.gemini_adapter import GeminiMessagesClient, build_gemini_sdk_client
 from .rag.store import InMemoryVectorStore, build_corpus
+
+load_dotenv()  # loads .env if present; real environment variables always take priority
 
 
 def main() -> int:

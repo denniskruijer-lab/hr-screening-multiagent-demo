@@ -10,6 +10,7 @@ Run with: streamlit run streamlit_app.py
 from __future__ import annotations
 
 import streamlit as st
+from dotenv import load_dotenv
 
 from src.agent import MaxIterationsExceeded
 from src.agents.supervisor import build_supervisor
@@ -17,6 +18,8 @@ from src.logging_setup import configure_logging, log_trace
 from src.providers.anthropic_client import build_anthropic_client
 from src.providers.gemini_adapter import GeminiMessagesClient, build_gemini_sdk_client
 from src.rag.store import InMemoryVectorStore, build_corpus
+
+load_dotenv()  # loads .env if present; real environment variables always take priority
 
 DATASETS = {
     "Fictional sample data": {
